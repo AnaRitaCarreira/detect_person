@@ -266,8 +266,8 @@ def abrir_janela_principal():
             messagebox.showerror("Erro", "Não foi possível abrir o vídeo ou câmara.")
             return
 
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        #w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        #video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         from_email = "myyoloalarm@gmail.com"
         password = "---- ---- ---- ----"  # Substituir pela tua app password
@@ -305,11 +305,14 @@ def abrir_janela_principal():
                             message=f"Pessoa detetada às {time}!",
                             timeout=5
                         )
+
+                    # Espera 1 segundo antes da próxima captura
+                    time.sleep(1)
                         
                         #adicionar_log(f"Pessoa detetada! Imagem guardada em {nome_ficheiro}")
 
                     # Continua a gravar o vídeo
-                    video_writer.write(results.plot_im)
+                    #video_writer.write(results.plot_im)
                 else:
                     print("Fora do horário do alarme. Aguardando...")
                     #adicionar_log(f"Fora do horário do alarme. A aguardar até às {hora_inicio}...")
@@ -322,7 +325,7 @@ def abrir_janela_principal():
             print("Alarme parado.")
 
         cap.release()
-        video_writer.release()
+        #video_writer.release()
         cv2.destroyAllWindows()
 
 

@@ -1,3 +1,6 @@
 
 *.png
 *.avi
+*.pkg
+*.zip
+*.json
