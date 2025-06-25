@@ -12,6 +12,9 @@ import json
 import os
 import pystray
 from pystray import MenuItem as item
+import subprocess
+import platform
+from plyer import notification
 
 
 # Caminho do ficheiro de configuração
@@ -21,14 +24,15 @@ icone_tray = None  # Controlar o ícone da tray
 alarme_parar = threading.Event()  # Event para controlar o stop da thread
 
 # Função para guardar dados
-def guardar_config(ip,user_cam,password_cam, hora_inicio, hora_fim, diretorio_imagens):
+def guardar_config(ip,user_cam,password_cam, hora_inicio, hora_fim, diretorio_imagens, diretorio_som):
     config = {
         "ip": ip,
         "user_cam": user_cam, 
         "password_cam":password_cam,
         "hora_inicio": hora_inicio,
         "hora_fim": hora_fim,
-        "diretorio_imagens": diretorio_imagens
+        "diretorio_imagens": diretorio_imagens,
+        "diretorio_som":diretorio_som
     }
     with open(CONFIG_FILE, "w") as f:
         json.dump(config, f)
@@ -46,46 +50,6 @@ def dentro_do_periodo(hora_inicio, hora_fim):
     agora = datetime.datetime.now().time()
     return hora_inicio <= agora <= hora_fim if hora_inicio < hora_fim else (agora >= hora_inicio or agora <= hora_fim)
 
-
-# Função que inicia o processamento do vídeo
-def iniciar_alarme(ip_camera, hora_inicio, hora_fim):
-    cap = cv2.VideoCapture(ip_camera)
-    if not cap.isOpened():
-        messagebox.showerror("Erro", "Não foi possível abrir o vídeo ou câmara.")
-        return
-
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-    from_email = "myyoloalarm@gmail.com"
-    password = "---- ---- ---- ----"  # Substituir pela tua app password
-    to_email = "xyz@gmail.com"
-
-    securityalarm = solutions.SecurityAlarm(
-        show=False,
-        model="./weights/yolo11s.pt",
-        records=1,
-    )
-    #securityalarm.authenticate(from_email, password, to_email)
-
-    while cap.isOpened():
-        
-        while not alarme_parar.is_set():
-            if dentro_do_periodo(hora_inicio, hora_fim):
-                print("Alarme iniciado, monitorizando...")
-                success, im0 = cap.read()
-                if not success:
-                    break
-                results = securityalarm(im0)
-                video_writer.write(results.plot_im)
-            else:
-                print("Fora do horário do alarme. Aguardando...")
-                time.sleep(10)
-        print("Alarme parado.")
-
-    cap.release()
-    video_writer.release()
-    cv2.destroyAllWindows()
 
 
 # Janela de Login
@@ -127,6 +91,19 @@ def iniciar_tray():
     ))
     threading.Thread(target=icone_tray.run, daemon=True).start()
 
+def choose_som_alarme():
+    global diretorio_som
+    caminho_som = filedialog.askopenfilename(title="Escolher ficheiro de som", filetypes=[("Ficheiros de Áudio", "*.mp3 *.wav")])
+    if caminho_som:
+        diretorio_som = caminho_som
+        print(f"Novo som do alarme: {diretorio_som}")
+        
+        config = carregar_config()
+        config["diretorio_som"] = diretorio_som
+        
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f)
+
 def choose_directory():
     global diretorio_imagens
     pasta = filedialog.askdirectory()
@@ -143,9 +120,45 @@ def choose_directory():
         with open(CONFIG_FILE, "w") as f:
             json.dump(config, f)
 
+def abrir_diretorio_imagens():
+    global diretorio_imagens
+    if not diretorio_imagens:
+        messagebox.showerror("Erro", "Diretório de imagens não definido.")
+        return
+
+    try:
+        if platform.system() == "Windows":
+            os.startfile(diretorio_imagens)
+        elif platform.system() == "Darwin":  # macOS
+            subprocess.Popen(["open", diretorio_imagens])
+        else:  # Linux
+            subprocess.Popen(["xdg-open", diretorio_imagens])
+    except Exception as e:
+        messagebox.showerror("Erro", f"Não foi possível abrir o diretório: {e}")
+
+def mostrar_ajuda():
+    texto_ajuda = (
+        "1. Configure o IP e as credenciais da câmara.\n"
+        "2. Defina o horário de funcionamento do alarme.\n"
+        "3. Escolha o diretório onde guardar as capturas.\n"
+        "4. Clique em 'Iniciar Alarme' para começar.\n"
+        "5. A aplicação ficará minimizada na Tray.\n"
+        "6. Pode parar o alarme a qualquer momento.\n"
+    )
+    messagebox.showinfo("Ajuda", texto_ajuda)
+
+def mostrar_sobre():
+    texto_sobre = (
+        "YOLOAlarm v1.0\n"
+        "Aplicação de monitorização com deteção inteligente.\n"
+        "Desenvolvido por Ana Carreira e Renato Macedo.\n"
+        "Powered by YOLO.\n"
+    )
+    messagebox.showinfo("Sobre", texto_sobre)
+
 # Janela Principal
 def abrir_janela_principal():
-    global janela, alarme_parar, diretorio_imagens
+    global janela, alarme_parar, diretorio_imagens, diretorio_som
     alarme_parar.clear()  # Reset event
     # Carregar configuração existente, se houver
     config = carregar_config()
@@ -160,11 +173,17 @@ def abrir_janela_principal():
     # Menu Opções
     options_menu = tk.Menu(menu_bar, tearoff=0)
     options_menu.add_command(label="Escolher diretório para guardar capturas", command=choose_directory)
+    options_menu.add_command(label="Abrir diretório de imagens", command=abrir_diretorio_imagens)
+    options_menu.add_command(label="Escolher som do alarme", command=choose_som_alarme)
     menu_bar.add_cascade(label="Opções", menu=options_menu)
     
+    # Menu Ajuda
+    help_menu = tk.Menu(menu_bar, tearoff=0)
+    help_menu.add_command(label="Ajuda", command=mostrar_ajuda)
+    help_menu.add_command(label="Sobre", command=mostrar_sobre)
+    menu_bar.add_cascade(label="Ajuda", menu=help_menu)
+
     janela.config(menu=menu_bar)
-
-
 
     # Carregar imagem
     try:
@@ -237,8 +256,79 @@ def abrir_janela_principal():
             spin_minuto_fim.delete(0, tk.END)
             spin_minuto_fim.insert(0, partes[1])
 
-    def iniciar():
+    diretorio_imagens = config.get("diretorio_imagens", "./capturas")
+    diretorio_som = config.get("diretorio_som", "./sound/alarm.mp3")
 
+    # Função que inicia o processamento do vídeo
+    def iniciar_alarme(ip_camera, hora_inicio, hora_fim, diretorio_som):
+        cap = cv2.VideoCapture(ip_camera)
+        if not cap.isOpened():
+            messagebox.showerror("Erro", "Não foi possível abrir o vídeo ou câmara.")
+            return
+
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+        from_email = "myyoloalarm@gmail.com"
+        password = "---- ---- ---- ----"  # Substituir pela tua app password
+        to_email = "xyz@gmail.com"
+
+        securityalarm = solutions.SecurityAlarm(
+            show=False,
+            model="./weights/yolo11s.pt",
+            records=1,
+        )
+        #securityalarm.authenticate(from_email, password, to_email)
+
+        while cap.isOpened():
+            
+            while not alarme_parar.is_set():
+                if dentro_do_periodo(hora_inicio, hora_fim):
+                    print("Alarme iniciado, monitorizando...")
+                    #adicionar_log(f"Alarme iniciado, monitorizando até às {hora_fim}")
+                    success, im0 = cap.read()
+                    if not success:
+                        break
+                    results = securityalarm(im0, diretorio_som)
+
+                    # Verifica se houve deteção de pessoas
+                    if results.person_detected == True:
+                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        time = datetime.datetime.now().strftime("%H:%M:%S")
+                        # Guarda imagem da deteção
+                        nome_ficheiro = os.path.join(diretorio_imagens, f"deteccao_{timestamp}.jpg")
+                        cv2.imwrite(nome_ficheiro, results.plot_im)
+                        
+                        # Notificação no sistema
+                        notification.notify(
+                            title="YOLOAlarm",
+                            message=f"Pessoa detetada às {time}!",
+                            timeout=5
+                        )
+                        
+                        #adicionar_log(f"Pessoa detetada! Imagem guardada em {nome_ficheiro}")
+
+                    # Continua a gravar o vídeo
+                    video_writer.write(results.plot_im)
+                else:
+                    print("Fora do horário do alarme. Aguardando...")
+                    #adicionar_log(f"Fora do horário do alarme. A aguardar até às {hora_inicio}...")
+                    notification.notify(
+                        title="YOLOAlarm",
+                        message="O alarme foi parado!",
+                        timeout=5
+                    )
+                    time.sleep(10)
+            print("Alarme parado.")
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()
+
+
+
+    def iniciar():
+        global diretorio_imagens, diretorio_som
         ip = entrada_ip.get()
         user_cam = entrada_usercam.get()
         password_cam = entrada_passwordcam.get()
@@ -251,17 +341,38 @@ def abrir_janela_principal():
             messagebox.showerror("Erro", "Formato de hora inválido. Utilize HH:MM.")
             return
         
+        if not ip or not user_cam or not password_cam:
+            messagebox.showerror("Erro", "Preencha todos os campos da câmara.")
+            return
+
+        if not diretorio_imagens:
+            messagebox.showerror("Erro", "Escolha o diretório para guardar as capturas.")
+            return
         # Guardar configuração
-        guardar_config(ip,user_cam,password_cam, hora_inicio, hora_fim, diretorio_imagens)
+        guardar_config(ip,user_cam,password_cam, entrada_inicio_str, entrada_fim_str, diretorio_imagens, diretorio_som)
         alarme_parar.clear()
         url_cam = f"rtsp://{user_cam}:{password_cam}@{ip}\stream1"
         print("url_cam:", url_cam)
-        threading.Thread(target=iniciar_alarme, args=(0, h_inicio, h_fim), daemon=True).start()
-        messagebox.showinfo("Informação", "Alarme iniciado! Pode minimizar janela.")
+        threading.Thread(target=iniciar_alarme, args=(0, h_inicio, h_fim, diretorio_som), daemon=True).start()
+        messagebox.showinfo("Informação", f"Alarme iniciado até às {h_fim}! Pode minimizar janela.")
+
+        notification.notify(
+            title="YOLOAlarm",
+            message=f"Alarme iniciado até às {h_fim}",
+            timeout=5
+        )
+        #adicionar_log(f"Alarme iniciado até às {entrada_fim_str}!")
 
     def parar():
         alarme_parar.set()
-        messagebox.showinfo("Info", "Alarme parado!")
+        messagebox.showinfo("Info", "Alarme desligado por si!")
+        notification.notify(
+            title="YOLOAlarm",
+            message="Alarme desligado por si!",
+            timeout=5
+        )
+        #adicionar_log(f"Alarme desligado por si!")
+
 
     btn_iniciar = tk.Button(janela, text="Iniciar Alarme", command=iniciar)
     btn_iniciar.pack(pady=5)

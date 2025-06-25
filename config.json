@@ -1,1 +1,1 @@
-{"ip": "192.168.10.1", "user_cam": "username", "password_cam": "password", "hora_inicio": "15:00", "hora_fim": "16:00"}
+{"ip": "192.168.10.1", "user_cam": "username", "password_cam": "password", "hora_inicio": "08:00", "hora_fim": "10:00", "diretorio_imagens": "C:/Users/ana.carreira/Desktop/AnaCarreira/yolov11_alarm/ultralytics/detected_person", "diretorio_som": "C:/Users/ana.carreira/Desktop/AnaCarreira/yolov11_alarm/ultralytics/sounds/alarm.mp3"}

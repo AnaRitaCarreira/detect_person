@@ -1,25 +1,90 @@
-# People detection alarm system
 
-#### Here you can find the yolov5 from ultralytics modified code that I used to detect people and make a sound when the person is in the frame. 
-#### It also saves the frame and puts the date and time detected. 
-#### You can change the hours you want it to work.
+# YOLOAlarm
 
-(https://github.com/AnaRitaCarreira/AnaCarreira/blob/main/yolov5_alarm/yolov5/detected_person/2025_04_11_11_54_45_088709.png?raw=true)
-#### requirements for windows:
+Aplicação de monitorização com deteção inteligente de pessoas, utilizando YOLO para visão computacional e notificações no sistema. Inclui alarme configurável por horário, interface gráfica em Tkinter e integração com a bandeja do sistema.
 
-- pygame:
-  - pip install pygame
-- torch:
-  - pip3 install torch torchvision torchaudio
-- cv2:
-  - pip install opencv-python 
-- pandas:
-  - pip install pandas
-- requests
-  - pip install requests
-- ultralytics:
-  - pip install ultralytics
+---
 
-usage:
+## 🎯 Funcionalidades
 
-    python ./yolov5/detect_person.py --source "ADD THE URL/PATH to your source" 
+✅ Deteção de pessoas em tempo real com YOLO  
+✅ Notificações no sistema quando há deteção  
+✅ Possibilidade de guardar capturas de imagem  
+✅ Configuração de horário de funcionamento do alarme  
+✅ Interface gráfica simples com Tkinter  
+✅ Ícone na bandeja do sistema (system tray)  
+✅ Possibilidade de abrir o diretório de capturas diretamente  
+
+---
+
+## 🛠️ Requisitos
+
+- Python 3.8 ou superior
+- Instalar as seguintes bibliotecas:
+
+```bash
+pip install ultralytics
+pip install opencv-python
+pip install Pillow
+pip install pystray
+pip install plyer
+```
+
+Ou, em alternativa, podes criar um ficheiro `requirements.txt` com o seguinte conteúdo:
+
+```txt
+ultralytics
+opencv-python
+Pillow
+pystray
+plyer
+```
+
+E depois instalar tudo com:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 📦 Estrutura do Projeto
+
+```
+.
+├── yoloalarme.png         # Ícone da aplicação
+├── weights/               # Pasta com os pesos do YOLO
+│   └── yolo11s.pt
+├── config.json            # Ficheiro de configuração (criado pela app)
+├── capturas/              # Diretório onde são guardadas as imagens (configurável)
+├── app.py                 # Código principal da aplicação
+└── README.md
+```
+
+---
+
+## 🚀 Como utilizar
+
+1. Executa o ficheiro `app.py`  
+2. Faz login com as credenciais:
+   - Utilizador: `admin`
+   - Senha: `1234`  
+3. Configura o IP, utilizador e password da câmara  
+4. Define o horário de funcionamento do alarme  
+5. Escolhe o diretório onde guardar as imagens  
+6. Clica em "Iniciar Alarme"  
+7. A aplicação fica minimizada na tray e monitoriza conforme o horário definido  
+
+---
+
+## ⚠️ Notas Importantes
+
+- É necessário o ficheiro de pesos `yolo11s.pt` na pasta `weights`  
+- Se quiseres ativar o envio de e-mails, tens de descomentar e configurar a parte do `authenticate` no código  
+
+---
+
+## 👩‍💻 Desenvolvido por
+
+Ana Carreira & Renato Macedo  
+Powered by [Ultralytics YOLO](https://ultralytics.com/)  

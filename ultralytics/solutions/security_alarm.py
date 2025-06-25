@@ -123,7 +123,7 @@ class SecurityAlarm(BaseSolution):
         except Exception as e:
             LOGGER.error(f"Failed to send email: {e}")
 
-    def process(self, im0) -> SolutionResults:
+    def process(self, im0, diretorio_som) -> SolutionResults:
         """
         Monitor the frame, process object detections, and trigger alerts if a person (class 0) is detected.
         """
@@ -143,6 +143,7 @@ class SecurityAlarm(BaseSolution):
 
             if cls == 0:  # Class 0 = 'person'
                 person_detected = True
+                total_persons = sum(1 for cls in self.clss if cls == 0)
 
                 now = datetime.now()
                 current_time = now.strftime("%H:%M:%S")
@@ -164,7 +165,7 @@ class SecurityAlarm(BaseSolution):
 
                 # Reproduzir som de alarme
                 mixer.init()
-                mixer.music.load('./sounds/alarm.mp3')
+                mixer.music.load(diretorio_som)
                 mixer.music.play()
 
                 # Enviar email se ainda não foi enviado
@@ -177,4 +178,4 @@ class SecurityAlarm(BaseSolution):
         plot_im = annotator.result()
         self.display_output(plot_im)
 
-        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), email_sent=self.email_sent)
+        return SolutionResults(plot_im=plot_im, person_detected=person_detected, email_sent=self.email_sent)
