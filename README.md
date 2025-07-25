@@ -1,5 +1,6 @@
 
 # YOLOAlarm
+<img width="500" height="500" alt="image" src="https://github.com/user-attachments/assets/f3785959-8c85-423b-9f14-932f79d8b5d4" />
 
 Aplicação de monitorização com deteção inteligente de pessoas, utilizando YOLO para visão computacional e notificações no sistema. Inclui alarme configurável por horário, interface gráfica em Tkinter e integração com a bandeja do sistema.
 
