@@ -66,10 +66,14 @@ pip install -r requirements.txt
 
 ## 🚀 Como utilizar
 
-1. Executa o ficheiro `app.py`  
+1. Executa o ficheiro `app.py`
+<img width="500" height="500" alt="image" src="https://github.com/AnaRitaCarreira/detect_person/blob/main/captures/login.PNG?raw=true" />
 2. Faz login com as credenciais:
    - Utilizador: `admin`
-   - Senha: `1234`  
+   - Senha: `1234`
+
+<img width="500" height="500" alt="image" src="https://github.com/AnaRitaCarreira/detect_person/blob/main/captures/initial.PNG?raw=true" />
+
 3. Configura o IP, utilizador e password da câmara  
 4. Define o horário de funcionamento do alarme  
 5. Escolhe o diretório onde guardar as imagens  
