@@ -72,7 +72,7 @@ pip install -r requirements.txt
    - Utilizador: `admin`
    - Senha: `1234`
 
-<img  alt="image" src="https://github.com/AnaRitaCarreira/detect_person/blob/main/captures/initial.PNG?raw=true" />
+<img  width="50%" height="50%" alt="image" src="https://github.com/AnaRitaCarreira/detect_person/blob/main/captures/initial.PNG?raw=true" />
 
 3. Configura o IP, utilizador e password da câmara  
 4. Define o horário de funcionamento do alarme  
